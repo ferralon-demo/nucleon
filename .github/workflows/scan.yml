@@ -22,6 +22,7 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     permissions:
+      contents: write           # persist the StateStore ref (refs/nucleon/state) on push to main
       security-events: write   # SARIF -> code scanning upload
       pull-requests: write      # sticky PR comment
       issues: write             # pinned Issue dashboard
@@ -45,13 +46,20 @@ jobs:
         run: |
           chmod +x bin/nucleon bin/nucleon-plugin
           mkdir -p "$RUNNER_TEMP/out"
+          # Persist the durable StateStore ref only on push to main. A PR run stays
+          # stateless (it must not overwrite the baseline); -repo writes refs/nucleon/state.
+          REPO_FLAG=""
+          if [ "$GITHUB_EVENT_NAME" = "push" ] && [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            REPO_FLAG="-repo ${{ github.repository }}"
+          fi
           ./bin/nucleon baseline \
             -target target \
             -out "$RUNNER_TEMP/out" \
             -plugin-go "$GITHUB_WORKSPACE/bin/nucleon-plugin" \
             -subject-repo "${{ github.repository }}" \
             -revision "${{ github.ref_name }}" \
-            -commit "${{ github.sha }}"
+            -commit "${{ github.sha }}" \
+            $REPO_FLAG
           echo "out=$RUNNER_TEMP/out" >> "$GITHUB_OUTPUT"
 
       - name: Upload reports as a build artifact
