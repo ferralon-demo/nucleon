@@ -24,3 +24,5 @@ deterministic candidates, never proofs of exploitability.
 - `bin/` — the prebuilt scanner (`nucleon`) and its analyzer (`nucleon-plugin`).
 - `target/` — the sample Go module that gets scanned (vendored deps; offline).
 - `.github/workflows/scan.yml` — runs the binary and publishes the tiers.
+
+<!-- demo PR to exercise the sticky comment surface -->
