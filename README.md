@@ -16,8 +16,12 @@ results across GitHub's surfaces.
 | Static HTML report | **GitHub Pages** (push to `main`) |
 
 The sample target (`target/`) depends on `golang.org/x/text v0.3.6` and reaches
-`language.Parse`, so the scan reports a real reachable-candidate finding. Findings are
-deterministic candidates, never proofs of exploitability.
+`language.Parse`, so the scan reports a real reachable-candidate finding. Each candidate
+carries a graded reachability label (`attacker_tainted` ranks above `control_flow_only`),
+the structured entry point and call path that reach the vulnerable symbol, and EPSS/KEV
+exploitation-likelihood context (CISA KEV listing + EPSS score/percentile) used to rank the
+findings. Grade and EPSS/KEV are evidence strength and in-the-wild context — not proofs of
+exploitability. Findings are deterministic candidates, never proofs.
 
 ## Layout
 
