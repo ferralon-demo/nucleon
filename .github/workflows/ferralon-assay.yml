@@ -35,6 +35,7 @@ jobs:
     steps:
       - uses: ferralon-ai/ferralon-assay@2788d832d3f26d83b58025c3245bcc4154d700ed
         with:
+          target: target
           ingest-url: https://api.ferralon.com/ingest
           state-repo: ${{ github.repository }}
           state-ref: refs/tegron/state
