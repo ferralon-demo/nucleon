@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ferralon-ai/ferralon-assay@2788d832d3f26d83b58025c3245bcc4154d700ed
+      - uses: ferralon-ai/ferralon-assay@9c677633e7a77d3419e0d4ad5802fb6f04442171
         with:
           target: target
           ingest-url: https://api.ferralon.com/ingest
