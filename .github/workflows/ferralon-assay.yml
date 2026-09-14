@@ -9,9 +9,9 @@
 # run time and builds nothing — no scanner binary is committed to this repository.
 #
 # What it does, in this repository's own runner (no source leaves the repo):
-#   1. warms the Go module cache for the sample target so the scanner's Go analyzer can load
+#   1. warms the Go module cache for the repo root so the scanner's Go analyzer can load
 #      it with go/packages;
-#   2. runs the scanner over target/ -> report.json / report.html / report.sarif.json /
+#   2. runs the scanner over the repo root -> report.json / report.html / report.sarif.json /
 #      openvex.json, uploaded as the `scan-report` build artifact;
 #   3. publishes the scanner's own surfaces — SARIF code scanning, a pinned Issue dashboard,
 #      and a sticky PR comment;
@@ -62,10 +62,9 @@ jobs:
           go-version: "1.26.3"
           cache: false
 
-      - name: Warm the module cache for the target
+      - name: Warm the module cache
         # The scanner's Go analyzer loads the module with go/packages, which needs the
         # module graph resolvable on the runner — warm it before the scan.
-        working-directory: target
         run: go build ./...
 
       - name: Run the Ferralon Assay
@@ -73,7 +72,7 @@ jobs:
         uses: ferralon-ai/ferralon-assay@v0.3
         with:
           mode: baseline
-          target: target
+          target: .
           out: ${{ runner.temp }}/out
           subject-repo: ${{ github.repository }}
           revision: ${{ github.ref_name }}
