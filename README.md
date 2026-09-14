@@ -16,7 +16,7 @@ time and builds nothing — no scanner binary is committed here.
 | Pinned Issue dashboard | **Issues** |
 | Sticky comment | on each pull request |
 
-The sample target (`target/`) depends on `golang.org/x/text v0.3.6` and reaches
+The sample target (the repo-root Go module) depends on `golang.org/x/text v0.3.6` and reaches
 `language.Parse`, so the scan reports a real reachable-candidate finding. Each candidate
 carries a graded reachability label (`attacker_tainted` ranks above `control_flow_only`),
 the structured entry point and call path that reach the vulnerable symbol, and EPSS/KEV
@@ -29,5 +29,5 @@ request runs stay stateless and never overwrite it.
 
 ## Layout
 
-- `target/` — the sample Go module that gets scanned (vendored deps; offline).
+- `go.mod`, `go.sum`, `main.go`, `vendor/` — the sample Go module that gets scanned (vendored deps; offline), at the repo root so it's recognized as a Go tree.
 - `.github/workflows/ferralon-assay.yml` — runs the pinned assay Action and publishes the surfaces.
