@@ -1,5 +1,8 @@
 # Ferralon Assay — free, deterministic dependency-advisory scan, run in this
-# repository's own GitHub runner via the pinned ferralon-ai/ferralon-assay Action.
+# repository's own GitHub runner via the ferralon-ai/ferralon-assay Action, following the
+# floating @v0.3 alias so patch releases land without per-patch churn (scanner bytes stay
+# exact via the alias leaf's scanner-version default; sha-pin the leaf for an exact-patch
+# posture instead).
 #
 # This is nucleon's single scan workflow. It replaces the old in-repo path (the committed
 # bin/nucleon binary driven by scan.yml): the Action fetches a versioned scanner release at
@@ -56,7 +59,7 @@ jobs:
 
       - name: Run the Ferralon Assay
         id: scan
-        uses: ferralon-ai/ferralon-assay@v0.3.0
+        uses: ferralon-ai/ferralon-assay@v0.3
         with:
           mode: baseline
           target: target
