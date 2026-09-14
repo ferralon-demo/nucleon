@@ -1,15 +1,22 @@
-# Ferralon Assay
+# Ferralon Assay — free, deterministic dependency-advisory scan, run in this
+# repository's own GitHub runner via the pinned ferralon-ai/ferralon-assay Action.
 #
-# This file is the entire Ferralon footprint in this repository: one GitHub Actions
-# workflow that runs a free, deterministic dependency-advisory scan in this repository's
-# own runner, via the pinned, checksum-verified ferralon-ai/ferralon-assay Action. Nothing
-# else is committed here, and the scan itself never runs on Ferralon's infrastructure — it
-# runs on this workflow's own token, in this repository's own runner.
+# This is nucleon's single scan workflow. It replaces the old in-repo path (the committed
+# bin/nucleon binary driven by scan.yml): the Action fetches a versioned scanner release at
+# run time and builds nothing — no scanner binary is committed to this repository.
 #
-# Removing Ferralon: this file removes itself when the Ferralon App is uninstalled;
-# deleting it manually is also safe — the refs/tegron/state ref cleans itself up either
-# way. If you would rather remove it yourself right now: delete this file (a direct commit
-# or a PR both work) and, optionally, `git push origin --delete refs/tegron/state`.
+# What it does, in this repository's own runner (no source leaves the repo):
+#   1. warms the Go module cache for the sample target so the scanner's Go analyzer can load
+#      it with go/packages;
+#   2. runs the scanner over target/ -> report.json / report.html / report.sarif.json /
+#      openvex.json, uploaded as the `scan-report` build artifact;
+#   3. publishes the scanner's own surfaces — SARIF code scanning, a pinned Issue dashboard,
+#      and a sticky PR comment;
+#   4. on the default branch only, persists the StateStore baseline to refs/tegron/state
+#      (a PR run stays stateless and never overwrites the baseline).
+#
+# Removing Ferralon: delete this file (a direct commit or a PR both work) and, optionally,
+# `git push origin --delete refs/tegron/state`.
 
 name: Ferralon Assay
 
@@ -26,6 +33,7 @@ permissions:
   actions: write
   issues: write
   pull-requests: write
+  security-events: write
   id-token: write
 
 jobs:
@@ -34,9 +42,41 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ferralon-ai/ferralon-assay@v0.3.0
+
+      - uses: actions/setup-go@v5
         with:
+          go-version: "1.26.3"
+          cache: false
+
+      - name: Warm the module cache for the target
+        # The scanner's Go analyzer loads the module with go/packages, which needs the
+        # module graph resolvable on the runner — warm it before the scan.
+        working-directory: target
+        run: go build ./...
+
+      - name: Run the Ferralon Assay
+        id: scan
+        uses: ferralon-ai/ferralon-assay@v0.3.0
+        with:
+          mode: baseline
           target: target
-          ingest-url: https://api.ferralon.com/ingest
-          state-repo: ${{ github.repository }}
+          out: ${{ runner.temp }}/out
+          subject-repo: ${{ github.repository }}
+          revision: ${{ github.ref_name }}
+          commit: ${{ github.sha }}
+          # Persist the durable StateStore baseline only on the default branch. A PR run
+          # (github.ref_name is "<n>/merge") stays stateless, so it never overwrites the
+          # baseline. state-ref is the cross-team-contract ref the backend reader keys off.
           state-ref: refs/tegron/state
+          state-repo: ${{ github.ref_name == github.event.repository.default_branch && github.repository || '' }}
+
+      - name: Upload the scan report bundle (build artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-report
+          path: |
+            ${{ steps.scan.outputs.out-dir }}/report.json
+            ${{ steps.scan.outputs.out-dir }}/report.html
+            ${{ steps.scan.outputs.out-dir }}/report.sarif.json
+            ${{ steps.scan.outputs.out-dir }}/openvex.json
+          if-no-files-found: error
