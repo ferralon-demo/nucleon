@@ -24,8 +24,6 @@
 # target — reset from `vulnerable` with `.demo/prep-demo.sh`. The push filter below names
 # `main`; before this change every branch push was scanned. GitHub matches the filter against
 # the copy of this file ON THE PUSHED BRANCH, so every branch's copy must name `main`.
-# (This is `vulnerable`'s copy: it scans the repo root, where this branch keeps its Go module.
-# `main`'s copy scans target/. Only the push filter and workflow_dispatch changed here.)
 #
 # Removing Ferralon: delete this file (a direct commit or a PR both work) and, optionally,
 # `git push origin --delete refs/tegron/state`.
@@ -91,6 +89,9 @@ jobs:
           # Delete once the release bakes ASSAY_RUNS_URL.
           runs-url: https://api.ferralon.com/runs
           state-ref: refs/tegron/state
+          advisory-corpus-repo: ferralon-ai/vulnerability-corpus
+          advisory-corpus-ref: main
+          advisory-corpus-policy: published-24h
           state-repo: ${{ github.ref_name == github.event.repository.default_branch && github.repository || '' }}
 
       - name: Upload the scan report bundle (build artifact)
